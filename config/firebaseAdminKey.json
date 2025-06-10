@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "telekom-f3eb5",
+  "private_key_id": "99a745e2a3fe83d91397419d091fdcbcaa3b0177",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDXHWq3NYPbUOMb\n/3FXih2CnMiqJq5NyP9jRuaGrGx2U2EDboosTULskBKFlHZHTKWKXdIuV5UMbeab\nshz+DehpYX6eDFQD4mLPZevEa5nWOKPc2l5X6GfpsddXyt/lBTerETbB/Qyvtx70\nFTv5j937HmvAauQ++wlgycGf6Pm4YllAB46gBXYgS+yik/E6bL8UX8xySyZYHKfN\nA6xmtILfn5o7cCJmbpY5SxPwVALzBQigee4h/9niLGgPJnan7dxmiys6JZ4j5foi\no4kpHU1WU7WLMP5yLh2/NfwqIgb1ecXbi+dkRDpgMftOYgmwCnALb1FGg/a/H8D/\nCVLcvon3AgMBAAECggEAJiBFGz6lZZgjAIHYNVM54r3mBN5BM3El7pMQ5ZqmyJwD\njEepvqtc6q+oULuc8QshJfJ1/5evR5os7rh1UgPmBtNsTRfTRjL4H1kpndESXXkB\ndfHQGdWLoUxPZfSDlURE9xFgeqZeesBCgLFIxXUdu1XLdDmdxZnZsilgI3b315ln\nkNrkNR52RL+vIxqJRXsn+3Jd5WKkhvuUMoLCf0IfaroUtFveR3pqXSOfu9FTXwAy\nLcYTIk94kyWyY03ykK7F1tzQeCDy2rPqgBkXhwZQv9zMZnno/U7qmOAr+S2lGgvt\nFDdBwCUJZ2ZFODDuL7z+d8CkFC1+5Z9KmUckYSsAUQKBgQDwxYaqLsK0Agy1X4Dn\n5x0ubu8uTyzcA7ShmzCf4L2EqX02HIYuVGLuFXiey3cE+7XVd0vMCd4x0nL1ypJD\nH0Yvz7xTMe55vXEf0aQ0Y/hurhi7TmbDMwjeI0qaFsVJo8IJ3uTRgdOb0smJwlwC\nnmqvePNvBdSbF01MalhjspYWkQKBgQDkuHfxY/H2wUCS5V6aBobXR9dnCGfTvkr4\n3qjEFDotNsuqx+DTdJR1pWz9jxID1RdvmAiL/FOI0VuL1W0d+e4+hVD1NrLUDUSB\nMDNXdNMQZXuO+eHWJYbRym2NQ+9Lz70yhfk3a3mtMCIGUIZKDeJlKzzHATtJB5GQ\n8bQgYhMsBwKBgQDgEvSA7YPGgyHQqlENgclmrVdrgcP9/nTc8dEO+dlm3VXqRiGa\nfG6VpOXc4v6hZKCVSbEA8y4WsATNOvlj/ncTiAF8a7vFEMl3E2P+XguW9e+OYijB\nAX3/PljvjsGNBxpOlWHemTSWkFWAH6IBzez74VSsvoBe1hDaTR51qn6EAQKBgHt6\nT16le3qgyDDF3bW/skpFAbghJJR+1lDXPDtnRCUmwPt5HxpphMCix114QNyKzTU0\n2eBhH+PsSsUKOveE96cPKC7KEe9DHmm0UPN1IYFnmDYPF2oaJlfaNhyewXCnPVgq\nVeoifrUOGEBadrVCG6hMmGpDcvMxP9gFdR5KdFk/AoGAR+9UBfYQL57nBk1/MfJA\nKt3puWgQi7B+lJUzZ0yyjsWtlcjkzNDfbR3DA3XnEoRHt4B8rhCgwbzhHXnyjKeh\nYjzHjPHnjsAtZTGO8NT1vhEUggKlY2OplfmLfK9e8j96NIFXaw+Att5qAs/0xp7T\nfpSfKvedfMflWG8D8ZWQV00=\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-wfsaf@telekom-f3eb5.iam.gserviceaccount.com",
+  "client_id": "109081747895675778876",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-wfsaf%40telekom-f3eb5.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
