@@ -69,10 +69,9 @@ app.use((err, req, res, next) => {
 // Error Handling Middleware (MUST be the last middleware)
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT;
 
 app.listen(PORT, () => {
-  logger.info(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
   console.log(`Server running on port ${PORT}`);
 });
 
