@@ -1,4 +1,4 @@
-require('dotenv').config({ path: '.env' });
+require('dotenv').config();
 const nodemailer = require('nodemailer');
 
 const logger = require('./logger');
@@ -12,6 +12,9 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASS,
   },
 });
+
+console.log(process.env.EMAIL_USER);
+console.log(process.env.EMAIL_PASS);
 
 transporter.verify((error, success) => {
   if (error) {

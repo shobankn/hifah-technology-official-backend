@@ -32,3 +32,8 @@
 2025-06-10T12:04:17.717Z [31merror[39m: Error processing form submission
 2025-06-10T13:12:11.291Z [31merror[39m: Failed to send auto-reply email
 2025-06-10T13:12:11.295Z [31merror[39m: Error processing form submission
+2025-06-11T04:39:27.144Z [31merror[39m: Nodemailer configuration error
+2025-06-11T04:40:14.669Z [31merror[39m: Failed to send admin email
+2025-06-11T04:40:14.670Z [31merror[39m: Error processing form submission
+2025-06-11T04:40:44.197Z [31merror[39m: Failed to send admin email
+2025-06-11T04:40:44.199Z [31merror[39m: Error processing form submission
