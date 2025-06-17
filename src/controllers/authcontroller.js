@@ -43,14 +43,14 @@ const AdminSignin = async (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password.' });
 
     const token = jwt.sign({ id: admin._id }, process.env.JWT_SECRET, {
-      expiresIn: '5h',
+      expiresIn: '30d',
     });
 
     res.cookie('Authorization', `Bearer ${token}`, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      expires: new Date(Date.now() + 8 * 60 * 60 * 1000),
+      expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days in milliseconds
     });
 
     res.status(200).json({ message: 'Login successful.', token });
