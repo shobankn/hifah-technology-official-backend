@@ -47,7 +47,8 @@ const addPortfolio = async (req, res) => {
 const getAllPortfolios = async (req, res) => {
   try {
     const portfolios = await Portfolio.find().sort({ createdAt: -1 }); // Newest first
-    res.status(200).json(portfolios);
+    res.status(200).json({ success: true, portfolios });
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
