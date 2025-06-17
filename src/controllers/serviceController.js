@@ -1,0 +1,113 @@
+const { deleteCloudinaryImageByUrl } = require("../middleware/Cloudupload");
+const portfolioModel = require("../models/portfolioModel");
+const serviceModel = require("../models/serviceModel");
+
+
+
+const createservice = async (req, res) => {
+  try {
+    const { title, description } = req.body;
+    const iconUrl = req.files.icon?.[0]?.path;
+    const thumbnailUrl = req.files.thumbnail?.[0]?.path;
+
+    if (!title || !description || !iconUrl || !thumbnailUrl) {
+      return res.status(400).json({ success: false, message: 'All fields including images are required.' });
+    }
+
+    const service = await serviceModel.create({ title, description, iconUrl, thumbnailUrl });
+    res.status(201).json({ success: true, service });
+  } catch (err) {
+    console.error('Create Error:', err);
+    res.status(500).json({ success: false, message: 'Failed to create service' });
+  }
+}
+
+const updateservice = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, description } = req.body;
+    const existing = await serviceModel.findById(id);
+    if (!existing) return res.status(404).json({ message: 'Service not found' });
+
+    let iconUrl = existing.iconUrl;
+    let thumbnailUrl = existing.thumbnailUrl;
+
+    if (req.files.icon) {
+      await deleteCloudinaryImageByUrl(iconUrl);
+      iconUrl = req.files.icon[0].path;
+    }
+
+    if (req.files.thumbnail) {
+      await deleteCloudinaryImageByUrl(thumbnailUrl);
+      thumbnailUrl = req.files.thumbnail[0].path;
+    }
+
+    existing.title = title;
+    existing.description = description;
+    existing.iconUrl = iconUrl;
+    existing.thumbnailUrl = thumbnailUrl;
+
+    await existing.save();
+    res.json({ success: true, service: existing });
+  } catch (err) {
+    console.error('Update Error:', err);
+    res.status(500).json({ success: false, message: 'Failed to update service' });
+  }
+}
+
+const deleteservice = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const service = await serviceModel.findById(id);
+    if (!service) return res.status(404).json({ message: 'Service not found' });
+
+    await deleteCloudinaryImageByUrl(service.iconUrl);
+    await deleteCloudinaryImageByUrl(service.thumbnailUrl);
+    await service.deleteOne();
+
+    res.json({ success: true, message: 'Service deleted successfully' });
+  } catch (err) {
+    console.error('Delete Error:', err);
+    res.status(500).json({ success: false, message: 'Failed to delete service' });
+  }
+}
+
+const getAllService = async (req, res) => {
+  try {
+    const services = await serviceModel.find().sort({ createdAt: -1 });
+    res.json({ success: true, services });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Error fetching services' });
+  }
+}
+
+const getsingleservice = async (req, res) => {
+  try {
+    const service = await serviceModel.findById(req.params.id);
+    if (!service) {
+      return res.status(404).json({ success: false, message: 'Service not found' });
+    }
+
+    console.log('Service Category Key:', service.categoryKey);
+
+    const relatedProjects = await portfolioModel.find({
+      category: {
+        $elemMatch: {
+          $regex: new RegExp(service.categoryKey, 'i') // partial + case-insensitive
+        }
+      }
+    }).limit(6);
+
+    res.status(200).json({
+      success: true,
+      service,
+      relatedProjects,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server Error', error: error.message });
+  }
+};
+
+
+
+module.exports = {createservice,updateservice,deleteservice,getAllService,getsingleservice}

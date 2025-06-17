@@ -3,12 +3,17 @@ const express = require('express');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
-// const DataBaseConnection = require('./config/dbCon');
+const DataBaseConnection = require('./config/dbCon');
 const path = require('path');
 const logger = require('./src/utils/logger');
 const errorHandler = require('./src/middleware/error');
 const sliderimagerouter = require('./src/routes/sliderimage');
 const contactRouter = require('./src/routes/contactUsroute');
+const teamRouter  = require('./src/routes/TeamMemberRoute');
+const portfolioRoute = require('./src/routes/portfolioroute');
+const blogroute = require('./src/routes/blogroute');
+const serviceroute = require('./src/routes/serviceroute');
+const adminroute = require('./src/routes/userroute');
 
 
 
@@ -19,7 +24,7 @@ const app = express();
 // Load env vars
 // dotenv.config({ path: '.env' });
 
-// DataBaseConnection();
+DataBaseConnection();
 
 // Body parser
 app.use(express.json({ limit: '100mb' }));
@@ -43,6 +48,11 @@ app.use(cookieParser());
 
 app.use('/api',sliderimagerouter);
 app.use('/api',contactRouter);
+app.use('/api',teamRouter);
+app.use('/api',portfolioRoute);
+app.use('/api',blogroute);
+app.use('/api',serviceroute);
+app.use('/api',adminroute);
 
 
 
@@ -69,7 +79,7 @@ app.use((err, req, res, next) => {
 // Error Handling Middleware (MUST be the last middleware)
 app.use(errorHandler);
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 8000; // ✅ fallback to 8000 for localhost
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
