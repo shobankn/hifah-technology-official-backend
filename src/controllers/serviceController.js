@@ -6,21 +6,69 @@ const serviceModel = require("../models/serviceModel");
 
 const createservice = async (req, res) => {
   try {
-    const { title, description } = req.body;
+    const { title, description, categoryKey, exploreCards } = req.body;
+
+    // Uploaded by CloudinaryStorage
     const iconUrl = req.files.icon?.[0]?.path;
     const thumbnailUrl = req.files.thumbnail?.[0]?.path;
+    const exploreIcons = req.files.exploreIcons || [];
 
     if (!title || !description || !iconUrl || !thumbnailUrl) {
-      return res.status(400).json({ success: false, message: 'All fields including images are required.' });
+      return res.status(400).json({
+        success: false,
+        message: 'Title, description, icon, and thumbnail are required.'
+      });
     }
 
-    const service = await serviceModel.create({ title, description, iconUrl, thumbnailUrl });
+    // Parse exploreCards JSON
+    let parsedExploreCards = [];
+    if (exploreCards) {
+      try {
+        parsedExploreCards = JSON.parse(exploreCards);
+        if (!Array.isArray(parsedExploreCards)) throw new Error();
+      } catch {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid exploreCards format. Must be a JSON array.'
+        });
+      }
+    }
+
+    // Validate exploreCards length matches uploaded icons
+    if (parsedExploreCards.length !== exploreIcons.length) {
+      return res.status(400).json({
+        success: false,
+        message: 'Number of exploreIcons must match exploreCards.'
+      });
+    }
+
+    // Combine exploreCard data with Cloudinary icon URLs
+    const finalExploreCards = parsedExploreCards.map((card, index) => ({
+      name: card.name,
+      description: card.description,
+      exploriconUrl: exploreIcons[index]?.path || ''
+    }));
+
+    // Save service to DB
+    const service = await serviceModel.create({
+      title,
+      description,
+      iconUrl,
+      thumbnailUrl,
+      categoryKey,
+      exploreCards: finalExploreCards
+    });
+
     res.status(201).json({ success: true, service });
+
   } catch (err) {
-    console.error('Create Error:', err);
+    console.error('Create Service Error:', err);
     res.status(500).json({ success: false, message: 'Failed to create service' });
   }
-}
+};
+
+
+
 
 const updateservice = async (req, res) => {
   try {
