@@ -68,6 +68,7 @@ const createservice = async (req, res) => {
 };
 
 
+
 const updateservice = async (req, res) => {
   try {
     const { id } = req.params;
@@ -109,39 +110,25 @@ const updateservice = async (req, res) => {
       }
 
       const exploreIcons = req.files.exploreIcons || [];
-      console.log('Parsed exploreCards:', parsedExploreCards);
-      console.log('exploreIcons:', exploreIcons);
 
-      // Map exploreCards to combine with existing or new icon URLs
-      finalExploreCards = parsedExploreCards.map((card, index) => {
-        const existingCard = existing.exploreCards[index] || null;
-        if (card.hasNewIcon && index < exploreIcons.length) {
-          // New icon provided, delete old icon if it exists
-          if (existingCard && existingCard.exploriconUrl) {
-            console.log(`Deleting old icon for card ${index}: ${existingCard.exploriconUrl}`);
-            deleteCloudinaryImageByUrl(existingCard.exploriconUrl);
-          }
-          const newIconUrl = exploreIcons[index].path || '';
-          console.log(`Assigning new icon for card ${index}: ${newIconUrl}`);
-          return {
-            name: card.name,
-            description: card.description,
-            exploriconUrl: newIconUrl,
-          };
-        } else {
-          // No new icon, retain existing icon URL if available
-          const retainedUrl = (existingCard && existingCard.exploriconUrl) || card.exploriconUrl || '';
-          console.log(`Retaining icon for card ${index}: ${retainedUrl}`);
-          return {
-            name: card.name,
-            description: card.description,
-            exploriconUrl: retainedUrl,
-          };
-        }
-      });
+      if (parsedExploreCards.length !== exploreIcons.length) {
+        return res.status(400).json({
+          success: false,
+          message: 'Number of exploreIcons must match exploreCards.'
+        });
+      }
 
-      // Log final exploreCards for debugging
-      console.log('Final exploreCards:', finalExploreCards);
+      // Remove old explore icons from Cloudinary
+      for (const card of existing.exploreCards) {
+        await deleteCloudinaryImageByUrl(card.exploriconUrl);
+      }
+
+      // Create new exploreCards array with uploaded icons
+      finalExploreCards = parsedExploreCards.map((card, index) => ({
+        name: card.name,
+        description: card.description,
+        exploriconUrl: exploreIcons[index]?.path || ''
+      }));
     }
 
     // Update fields
