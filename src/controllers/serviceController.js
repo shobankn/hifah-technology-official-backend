@@ -69,39 +69,84 @@ const createservice = async (req, res) => {
 
 
 
-
 const updateservice = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description } = req.body;
+    const { title, description, categoryKey, exploreCards } = req.body;
+
     const existing = await serviceModel.findById(id);
-    if (!existing) return res.status(404).json({ message: 'Service not found' });
+    if (!existing) {
+      return res.status(404).json({ success: false, message: 'Service not found' });
+    }
 
     let iconUrl = existing.iconUrl;
     let thumbnailUrl = existing.thumbnailUrl;
 
+    // Replace icon if new file is uploaded
     if (req.files.icon) {
       await deleteCloudinaryImageByUrl(iconUrl);
       iconUrl = req.files.icon[0].path;
     }
 
+    // Replace thumbnail if new file is uploaded
     if (req.files.thumbnail) {
       await deleteCloudinaryImageByUrl(thumbnailUrl);
       thumbnailUrl = req.files.thumbnail[0].path;
     }
 
-    existing.title = title;
-    existing.description = description;
+    // Explore cards update (optional)
+    let finalExploreCards = existing.exploreCards;
+
+    if (exploreCards) {
+      let parsedExploreCards = [];
+      try {
+        parsedExploreCards = JSON.parse(exploreCards);
+        if (!Array.isArray(parsedExploreCards)) throw new Error();
+      } catch {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid exploreCards format. Must be a JSON array.'
+        });
+      }
+
+      const exploreIcons = req.files.exploreIcons || [];
+
+      if (parsedExploreCards.length !== exploreIcons.length) {
+        return res.status(400).json({
+          success: false,
+          message: 'Number of exploreIcons must match exploreCards.'
+        });
+      }
+
+      // Remove old explore icons from Cloudinary
+      for (const card of existing.exploreCards) {
+        await deleteCloudinaryImageByUrl(card.exploriconUrl);
+      }
+
+      // Create new exploreCards array with uploaded icons
+      finalExploreCards = parsedExploreCards.map((card, index) => ({
+        name: card.name,
+        description: card.description,
+        exploriconUrl: exploreIcons[index]?.path || ''
+      }));
+    }
+
+    // Update fields
+    existing.title = title ?? existing.title;
+    existing.description = description ?? existing.description;
+    existing.categoryKey = categoryKey ?? existing.categoryKey;
     existing.iconUrl = iconUrl;
     existing.thumbnailUrl = thumbnailUrl;
+    existing.exploreCards = finalExploreCards;
 
     await existing.save();
+
     res.json({ success: true, service: existing });
   } catch (err) {
     console.error('Update Error:', err);
     res.status(500).json({ success: false, message: 'Failed to update service' });
   }
-}
+};
 
 const deleteservice = async (req, res) => {
   try {
