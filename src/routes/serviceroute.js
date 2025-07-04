@@ -17,6 +17,8 @@ serviceroute.route('/update-service/:id').put( upload.fields([
     { name: 'thumbnail', maxCount: 1 },
     { name: 'exploreIcons',maxCount: 10 } // allow multiple explore icons
   ]),authentication,updateservice);
+
+  
 serviceroute.route('/delete-service/:id').delete(authentication,deleteservice);
 serviceroute.route('/get-all-service').get(getAllService);
 serviceroute.route('/get-service-detail/:id').get(getsingleservice);
