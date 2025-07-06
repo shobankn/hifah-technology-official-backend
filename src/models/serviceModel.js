@@ -4,7 +4,7 @@ const exploreCardSchema = new mongoose.Schema({
   name: { type: String },
   description: { type: String },
   exploriconUrl: { type: String }
-}, { _id: false });
+}, { _id: true });
 
 const serviceSchema = new mongoose.Schema({
   title: { type: String, required: true },
@@ -14,7 +14,8 @@ const serviceSchema = new mongoose.Schema({
   categoryKey: { type: String },
 
   // 🔥 NEW: Add explore cards array
-  exploreCards: [exploreCardSchema]
+  exploreCards: [exploreCardSchema],
+   headerIcons: [{ type: String }]
 
 }, { timestamps: true });
 

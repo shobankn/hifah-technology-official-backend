@@ -8,10 +8,10 @@ const createservice = async (req, res) => {
   try {
     const { title, description, categoryKey, exploreCards } = req.body;
 
-    // Uploaded by CloudinaryStorage
     const iconUrl = req.files.icon?.[0]?.path;
     const thumbnailUrl = req.files.thumbnail?.[0]?.path;
     const exploreIcons = req.files.exploreIcons || [];
+    const headerIconsFiles = req.files.headerIcons || [];
 
     if (!title || !description || !iconUrl || !thumbnailUrl) {
       return res.status(400).json({
@@ -49,6 +49,9 @@ const createservice = async (req, res) => {
       exploriconUrl: exploreIcons[index]?.path || ''
     }));
 
+    // ✅ Extract headerIcons URLs
+    const headerIcons = headerIconsFiles.map(file => file.path);
+
     // Save service to DB
     const service = await serviceModel.create({
       title,
@@ -56,7 +59,8 @@ const createservice = async (req, res) => {
       iconUrl,
       thumbnailUrl,
       categoryKey,
-      exploreCards: finalExploreCards
+      exploreCards: finalExploreCards,
+      headerIcons // ✅ Include in create call
     });
 
     res.status(201).json({ success: true, service });
@@ -74,79 +78,87 @@ const updateservice = async (req, res) => {
     const { id } = req.params;
     const { title, description, categoryKey, exploreCards } = req.body;
 
-    const existing = await serviceModel.findById(id);
-    if (!existing) {
-      return res.status(404).json({ success: false, message: 'Service not found' });
+    const iconFile = req.files.icon?.[0];
+    const thumbnailFile = req.files.thumbnail?.[0];
+    const exploreIcons = req.files.exploreIcons || [];
+    const headerIconsFiles = req.files.headerIcons || [];
+
+    const service = await serviceModel.findById(id);
+    if (!service) {
+      return res.status(404).json({ success: false, message: 'Service not found.' });
     }
 
-    let iconUrl = existing.iconUrl;
-    let thumbnailUrl = existing.thumbnailUrl;
-
-    // Replace icon if new file is uploaded
-    if (req.files.icon) {
-      await deleteCloudinaryImageByUrl(iconUrl);
-      iconUrl = req.files.icon[0].path;
+    // ✅ Update icon
+    if (iconFile) {
+      if (service.iconUrl) await deleteCloudinaryImageByUrl(service.iconUrl);
+      service.iconUrl = iconFile.path;
     }
 
-    // Replace thumbnail if new file is uploaded
-    if (req.files.thumbnail) {
-      await deleteCloudinaryImageByUrl(thumbnailUrl);
-      thumbnailUrl = req.files.thumbnail[0].path;
+    // ✅ Update thumbnail
+    if (thumbnailFile) {
+      if (service.thumbnailUrl) await deleteCloudinaryImageByUrl(service.thumbnailUrl);
+      service.thumbnailUrl = thumbnailFile.path;
     }
 
-    // Explore cards update (optional)
-    let finalExploreCards = existing.exploreCards;
+    // ✅ Update headerIcons
+    if (headerIconsFiles.length > 0) {
+      for (const oldIcon of service.headerIcons || []) {
+        await deleteCloudinaryImageByUrl(oldIcon);
+      }
+      service.headerIcons = headerIconsFiles.map(file => file.path);
+    }
 
+    // ✅ Update exploreCards (full replacement)
     if (exploreCards) {
-      let parsedExploreCards = [];
+      let parsedExploreCards;
       try {
         parsedExploreCards = JSON.parse(exploreCards);
         if (!Array.isArray(parsedExploreCards)) throw new Error();
       } catch {
-        return res.status(400).json({
-          success: false,
-          message: 'Invalid exploreCards format. Must be a JSON array.'
-        });
+        return res.status(400).json({ success: false, message: 'Invalid exploreCards format' });
       }
 
-      const exploreIcons = req.files.exploreIcons || [];
-
-      if (parsedExploreCards.length !== exploreIcons.length) {
-        return res.status(400).json({
-          success: false,
-          message: 'Number of exploreIcons must match exploreCards.'
-        });
+      // Delete old icons
+      for (const oldCard of service.exploreCards || []) {
+        if (oldCard.exploriconUrl) await deleteCloudinaryImageByUrl(oldCard.exploriconUrl);
       }
 
-      // Remove old explore icons from Cloudinary
-      for (const card of existing.exploreCards) {
-        await deleteCloudinaryImageByUrl(card.exploriconUrl);
-      }
-
-      // Create new exploreCards array with uploaded icons
-      finalExploreCards = parsedExploreCards.map((card, index) => ({
+      // Combine new cards with optional new icons
+      const updatedExploreCards = parsedExploreCards.map((card, index) => ({
         name: card.name,
         description: card.description,
         exploriconUrl: exploreIcons[index]?.path || ''
       }));
+
+      service.exploreCards = updatedExploreCards;
     }
 
-    // Update fields
-    existing.title = title ?? existing.title;
-    existing.description = description ?? existing.description;
-    existing.categoryKey = categoryKey ?? existing.categoryKey;
-    existing.iconUrl = iconUrl;
-    existing.thumbnailUrl = thumbnailUrl;
-    existing.exploreCards = finalExploreCards;
+    // ✅ Update text fields
+    if (title) service.title = title;
+    if (description) service.description = description;
+    if (categoryKey) service.categoryKey = categoryKey;
 
-    await existing.save();
+    await service.save();
 
-    res.json({ success: true, service: existing });
+    return res.status(200).json({
+      success: true,
+      message: 'Service updated successfully',
+      service
+    });
+
   } catch (err) {
-    console.error('Update Error:', err);
-    res.status(500).json({ success: false, message: 'Failed to update service' });
+    console.error('Update Service Error:', err);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to update service'
+    });
   }
 };
+
+
+
+
+
 
 const deleteservice = async (req, res) => {
   try {

@@ -4,18 +4,22 @@ const { upload } = require('../middleware/Cloudupload');
 const authentication = require('../middleware/authentication');
 const serviceroute = express.Router();
 
-
-serviceroute.route('/create-service').post(upload.fields([
-    
-    { name: 'icon', maxCount: 1 },
-    { name: 'thumbnail', maxCount: 1 },
-    { name: 'exploreIcons', maxCount: 10 }
-  ]),authentication,createservice);
+      serviceroute.route('/create-service').post(
+        upload.fields([
+          { name: 'icon', maxCount: 1 },
+          { name: 'thumbnail', maxCount: 1 },
+          { name: 'exploreIcons', maxCount: 10 },
+          { name: 'headerIcons', maxCount: 10 } 
+        ]),
+        authentication,
+        createservice
+      );
 
 serviceroute.route('/update-service/:id').put( upload.fields([
     { name: 'icon', maxCount: 1 },
     { name: 'thumbnail', maxCount: 1 },
-    { name: 'exploreIcons',maxCount: 10 } // allow multiple explore icons
+    { name: 'exploreIcons',maxCount: 10 }, // allow multiple explore icons
+      { name: 'headerIcons', maxCount: 10 }
   ]),authentication,updateservice);
 
   
