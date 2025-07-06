@@ -75,85 +75,159 @@ const createservice = async (req, res) => {
 
 const updateservice = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { title, description, categoryKey, exploreCards } = req.body;
+    const { id } = req.params; // Service ID from URL
+    const { title, description, categoryKey, exploreCards, headerIcons } = req.body;
 
-    const iconFile = req.files.icon?.[0];
-    const thumbnailFile = req.files.thumbnail?.[0];
-    const exploreIcons = req.files.exploreIcons || [];
-    const headerIconsFiles = req.files.headerIcons || [];
+    // Extract file paths from uploaded files (if any)
+    const iconUrl = req.files?.icon?.[0]?.path;
+    const thumbnailUrl = req.files?.thumbnail?.[0]?.path;
+    const exploreIcons = req.files?.exploreIcons || [];
+    const headerIconsFiles = req.files?.headerIcons || [];
 
+    // Validate serviceId
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: 'Service ID is required.',
+      });
+    }
+
+    // Find existing service
     const service = await serviceModel.findById(id);
     if (!service) {
-      return res.status(404).json({ success: false, message: 'Service not found.' });
+      return res.status(404).json({
+        success: false,
+        message: 'Service not found.',
+      });
     }
 
-    // ✅ Update icon
-    if (iconFile) {
-      if (service.iconUrl) await deleteCloudinaryImageByUrl(service.iconUrl);
-      service.iconUrl = iconFile.path;
+    // Validate input fields if provided
+    if (title && typeof title !== 'string') {
+      return res.status(400).json({
+        success: false,
+        message: 'Title must be a string.',
+      });
+    }
+    if (description && typeof description !== 'string') {
+      return res.status(400).json({
+        success: false,
+        message: 'Description must be a string.',
+      });
+    }
+    if (categoryKey && typeof categoryKey !== 'string') {
+      return res.status(400).json({
+        success: false,
+        message: 'Category key must be a string.',
+      });
     }
 
-    // ✅ Update thumbnail
-    if (thumbnailFile) {
-      if (service.thumbnailUrl) await deleteCloudinaryImageByUrl(service.thumbnailUrl);
-      service.thumbnailUrl = thumbnailFile.path;
-    }
-
-    // ✅ Update headerIcons
-    if (headerIconsFiles.length > 0) {
-      for (const oldIcon of service.headerIcons || []) {
-        await deleteCloudinaryImageByUrl(oldIcon);
-      }
-      service.headerIcons = headerIconsFiles.map(file => file.path);
-    }
-
-    // ✅ Update exploreCards (full replacement)
+    // Parse and validate exploreCards if provided
+    let parsedExploreCards = [];
     if (exploreCards) {
-      let parsedExploreCards;
       try {
         parsedExploreCards = JSON.parse(exploreCards);
-        if (!Array.isArray(parsedExploreCards)) throw new Error();
+        if (!Array.isArray(parsedExploreCards)) {
+          throw new Error();
+        }
       } catch {
-        return res.status(400).json({ success: false, message: 'Invalid exploreCards format' });
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid exploreCards format. Must be a JSON array.',
+        });
       }
 
-      // Delete old icons
-      for (const oldCard of service.exploreCards || []) {
-        if (oldCard.exploriconUrl) await deleteCloudinaryImageByUrl(oldCard.exploriconUrl);
+      // Validate that the number of new exploreIcons matches exploreCards with hasNewIcon: true
+      const newIconCards = parsedExploreCards.filter(card => card.hasNewIcon);
+      if (newIconCards.length !== exploreIcons.length) {
+        return res.status(400).json({
+          success: false,
+          message: `Number of exploreIcons (${exploreIcons.length}) must match number of exploreCards with new icons (${newIconCards.length}).`,
+        });
       }
-
-      // Combine new cards with optional new icons
-      const updatedExploreCards = parsedExploreCards.map((card, index) => ({
-        name: card.name,
-        description: card.description,
-        exploriconUrl: exploreIcons[index]?.path || ''
-      }));
-
-      service.exploreCards = updatedExploreCards;
     }
 
-    // ✅ Update text fields
-    if (title) service.title = title;
-    if (description) service.description = description;
-    if (categoryKey) service.categoryKey = categoryKey;
+    // Parse and validate headerIcons if provided
+    let parsedHeaderIcons = [];
+    if (headerIcons) {
+      try {
+        parsedHeaderIcons = JSON.parse(headerIcons);
+        if (!Array.isArray(parsedHeaderIcons)) {
+          throw new Error();
+        }
+      } catch {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid headerIcons format. Must be a JSON array.',
+        });
+      }
 
-    await service.save();
+      // Validate that the number of new headerIcons matches headerIcons with hasNewIcon: true
+      const newHeaderIconCards = parsedHeaderIcons.filter(icon => icon.hasNewIcon);
+      if (newHeaderIconCards.length !== headerIconsFiles.length) {
+        return res.status(400).json({
+          success: false,
+          message: `Number of headerIcons (${headerIconsFiles.length}) must match number of headerIcons with new icons (${newHeaderIconCards.length}).`,
+        });
+      }
+    }
 
-    return res.status(200).json({
+    // Prepare update data
+    const updateData = {
+      ...(title && { title }),
+      ...(description && { description }),
+      ...(categoryKey && { categoryKey }),
+      ...(iconUrl && { iconUrl }),
+      ...(thumbnailUrl && { thumbnailUrl }),
+    };
+
+    // Combine exploreCard data with icon URLs
+    if (parsedExploreCards.length > 0) {
+      let exploreIconIndex = 0;
+      updateData.exploreCards = parsedExploreCards.map(card => ({
+        name: card.name,
+        description: card.description,
+        exploriconUrl: card.hasNewIcon ? exploreIcons[exploreIconIndex++].path : card.exploriconUrl || '',
+      }));
+    }
+
+    // Combine headerIcons data with icon URLs
+    if (parsedHeaderIcons.length > 0) {
+      let headerIconIndex = 0;
+      updateData.headerIcons = parsedHeaderIcons.map(icon => (
+        icon.hasNewIcon ? headerIconsFiles[headerIconIndex++].path : icon.iconUrl || ''
+      ));
+    }
+
+    // Update service in DB
+    const updatedService = await serviceModel.findByIdAndUpdate(
+      id,
+      { $set: updateData },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedService) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to update service.',
+      });
+    }
+
+    res.status(200).json({
       success: true,
-      message: 'Service updated successfully',
-      service
+      service: updatedService,
     });
 
   } catch (err) {
     console.error('Update Service Error:', err);
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
-      message: 'Failed to update service'
+      message: 'Failed to update service.',
     });
   }
 };
+
+
+
 
 
 
