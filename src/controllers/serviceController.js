@@ -6,19 +6,29 @@ const serviceModel = require("../models/serviceModel");
 
 const createservice = async (req, res) => {
   try {
-    const { title, description, categoryKey, exploreCards } = req.body;
+    const { title, description, categoryKey, exploreCards,category } = req.body;
 
     const iconUrl = req.files.icon?.[0]?.path;
     const thumbnailUrl = req.files.thumbnail?.[0]?.path;
     const exploreIcons = req.files.exploreIcons || [];
     const headerIconsFiles = req.files.headerIcons || [];
 
-    if (!title || !description || !iconUrl || !thumbnailUrl) {
+    if (!title || !description || !iconUrl || !thumbnailUrl || !category) {
       return res.status(400).json({
         success: false,
-        message: 'Title, description, icon, and thumbnail are required.'
+        message: 'Title, description, icon, category and thumbnail  are required.'
       });
     }
+
+
+     const allowedCategories = ['App Development','Web Development', 'Design', 'Marketing','Ai Solution','Other'];
+    if (!allowedCategories.includes(category)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid category. Must be one of: ${allowedCategories.join(', ')}`
+      });
+    }
+    
 
     // Parse exploreCards JSON
     let parsedExploreCards = [];
@@ -57,6 +67,7 @@ const createservice = async (req, res) => {
       title,
       description,
       iconUrl,
+      category,
       thumbnailUrl,
       categoryKey,
       exploreCards: finalExploreCards,
@@ -76,7 +87,7 @@ const createservice = async (req, res) => {
 const updateservice = async (req, res) => {
   try {
     const { id } = req.params; // Service ID from URL
-    const { title, description, categoryKey, exploreCards, headerIcons } = req.body;
+    const { title, description, category, exploreCards, headerIcons } = req.body;
 
     // Extract file paths from uploaded files (if any)
     const iconUrl = req.files?.icon?.[0]?.path;
@@ -91,6 +102,7 @@ const updateservice = async (req, res) => {
         message: 'Service ID is required.',
       });
     }
+
 
     // Find existing service
     const service = await serviceModel.findById(id);
@@ -114,12 +126,22 @@ const updateservice = async (req, res) => {
         message: 'Description must be a string.',
       });
     }
-    if (categoryKey && typeof categoryKey !== 'string') {
+    if (category && typeof category !== 'string') {
       return res.status(400).json({
         success: false,
         message: 'Category key must be a string.',
       });
     }
+
+     // ✅ Validate category against enum if provided
+    const allowedCategories = ['App Development', 'Web Development', 'Design', 'Marketing', 'Ai Solution', 'Other'];
+    if (category && !allowedCategories.includes(category)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid category. Must be one of: ${allowedCategories.join(', ')}`,
+      });
+    }
+
 
     // Parse and validate exploreCards if provided
     let parsedExploreCards = [];
@@ -175,7 +197,7 @@ const updateservice = async (req, res) => {
     const updateData = {
       ...(title && { title }),
       ...(description && { description }),
-      ...(categoryKey && { categoryKey }),
+      ...(category && { category }),
       ...(iconUrl && { iconUrl }),
       ...(thumbnailUrl && { thumbnailUrl }),
     };
@@ -267,12 +289,12 @@ const getsingleservice = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Service not found' });
     }
 
-    console.log('Service Category Key:', service.categoryKey);
+    console.log('Service Category Key:', service.category);
 
     const relatedProjects = await portfolioModel.find({
       category: {
         $elemMatch: {
-          $regex: new RegExp(service.categoryKey, 'i') // partial + case-insensitive
+          $regex: new RegExp(service.category, 'i') // partial + case-insensitive
         }
       }
     }).limit(6);

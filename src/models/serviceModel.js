@@ -15,7 +15,12 @@ const serviceSchema = new mongoose.Schema({
 
   // 🔥 NEW: Add explore cards array
   exploreCards: [exploreCardSchema],
-   headerIcons: [{ type: String }]
+   headerIcons: [{ type: String }],
+    category: {
+  type: String,
+  enum: ['App Development','Web Development', 'Design', 'Marketing','Ai Solution','Other'],
+  required: true
+}
 
 }, { timestamps: true });
 
