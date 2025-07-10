@@ -1,6 +1,6 @@
 // utils/emailTemplates.js
 
-const contactEmailTemplate = (fullName, email, message) => `
+const contactEmailTemplate = (fullName, email, phone, message) => `
   <!DOCTYPE html>
   <html lang="en">
   <head>
@@ -205,6 +205,13 @@ const contactEmailTemplate = (fullName, email, message) => `
         <div class="field-group">
           <span class="field-label">Full Name</span>
           <div class="field-value">${fullName}</div>
+        </div>
+
+        <div class="field-group">
+        <span class="field-label">Phone Number</span>
+        <div class="field-value">
+          <a href="tel:${phone}">${phone}</a>
+        </div>
         </div>
         
         <div class="field-group">
